@@ -1,29 +1,26 @@
-/* ================= LOGIN / SIGNUP ================= */
+/* ===== AUTH ===== */
 const signupForm = document.getElementById("signupForm");
 const loginForm = document.getElementById("loginForm");
+const signupMsg = document.getElementById("signupMsg");
+const loginMsg = document.getElementById("loginMsg");
 
-const suUser = document.getElementById("suUser");
-const suPass = document.getElementById("suPass");
-const suMsg = document.getElementById("suMsg");
-
-const liUser = document.getElementById("liUser");
-const liPass = document.getElementById("liPass");
-const liMsg = document.getElementById("liMsg");
-
-function getUsers(){ return JSON.parse(localStorage.getItem("users"))||[]; }
-function saveUsers(u){ localStorage.setItem("users",JSON.stringify(u)); }
-function usernameExists(u){ return getUsers().some(x=>x.username===u); }
+let users = JSON.parse(localStorage.getItem("users")) || [];
 
 // SIGNUP
 if(signupForm){
   signupForm.addEventListener("submit", e=>{
     e.preventDefault();
-    const u = suUser.value.trim();
-    const p = suPass.value.trim();
-    if(!u||!p){ suMsg.textContent="All fields required"; suMsg.style.color="red"; return; }
-    if(usernameExists(u)){ suMsg.textContent="Username exists"; suMsg.style.color="red"; return; }
-    const users = getUsers(); users.push({username:u,password:p}); saveUsers(users);
-    suMsg.textContent="Signup success"; suMsg.style.color="green"; signupForm.reset();
+    const username = document.getElementById("signupUsername").value.trim();
+    const password = document.getElementById("signupPassword").value.trim();
+
+    if(!username||!password){ signupMsg.textContent="All fields required!"; signupMsg.style.color="red"; return; }
+    if(password.length<5){ signupMsg.textContent="Password must be at least 5 chars!"; signupMsg.style.color="red"; return; }
+    if(users.find(u=>u.username===username)){ signupMsg.textContent="Username exists!"; signupMsg.style.color="red"; return; }
+
+    users.push({username,password});
+    localStorage.setItem("users",JSON.stringify(users));
+    signupMsg.textContent="Signup successful! You can login."; signupMsg.style.color="green";
+    signupForm.reset();
   });
 }
 
@@ -31,120 +28,108 @@ if(signupForm){
 if(loginForm){
   loginForm.addEventListener("submit", e=>{
     e.preventDefault();
-    const u = liUser.value.trim();
-    const p = liPass.value.trim();
-    const validUser = getUsers().find(x=>x.username===u && x.password===p);
-    if(validUser){
-      localStorage.setItem("loggedInUser",u);
-      liMsg.textContent="Login success, redirecting..."; liMsg.style.color="green";
-      setTimeout(()=>window.location.href="dashboard.html",500);
-    } else {
-      liMsg.textContent="Invalid credentials"; liMsg.style.color="red";
-    }
+    const username = document.getElementById("loginUsername").value.trim();
+    const password = document.getElementById("loginPassword").value.trim();
+    const user = users.find(u=>u.username===username && u.password===password);
+
+    if(!user){ loginMsg.textContent="Invalid username or password!"; loginMsg.style.color="red"; return; }
+
+    localStorage.setItem("loggedInUser",username);
+    window.location.href="dashboard.html";
   });
 }
 
-/* ================= DASHBOARD ================= */
+/* ===== DASHBOARD ===== */
 const welcomeMsg = document.getElementById("welcomeMsg");
 const logoutBtn = document.getElementById("logoutBtn");
 const appointmentForm = document.getElementById("appointmentForm");
 const appointmentList = document.getElementById("appointmentList");
 const appMsg = document.getElementById("appMsg");
 
-const loggedInUser = localStorage.getItem("loggedInUser");
+function getLoggedInUser(){ return localStorage.getItem("loggedInUser"); }
+
+if(welcomeMsg) welcomeMsg.textContent = "Welcome " + getLoggedInUser();
 
 // Redirect if dashboard accessed without login
-if(welcomeMsg && !loggedInUser){
-  window.location.href="index.html"; // redirect to homepage instead of auth.html
+if(document.body.classList.contains("dashboard-page") && !getLoggedInUser()){
+  window.location.href="index.html";
 }
-
-// Show user welcome
-if(welcomeMsg) welcomeMsg.textContent = "Welcome " + loggedInUser;
 
 // Logout
 if(logoutBtn){
-  logoutBtn.addEventListener("click",()=>{
+  logoutBtn.addEventListener("click", ()=>{
     localStorage.removeItem("loggedInUser");
-    window.location.href="index.html"; // redirect to homepage after logout
+    window.location.href="index.html"; // go to home
   });
 }
 
-// Appointment storage
+// Appointments CRUD
 function getAppointments(){ return JSON.parse(localStorage.getItem("appointments"))||[]; }
 function saveAppointments(a){ localStorage.setItem("appointments",JSON.stringify(a)); }
+function getAppointmentIndex(app){
+  const all = getAppointments();
+  return all.findIndex(a => a.user===app.user && a.patientName===app.patientName && a.service===app.service && a.date===app.date);
+}
 
-// Add/Edit appointment
-let editIndex = null;
+// Add
 if(appointmentForm){
   appointmentForm.addEventListener("submit", e=>{
     e.preventDefault();
+    const user = getLoggedInUser();
     const name = document.getElementById("patientName").value.trim();
     const service = document.getElementById("service").value;
     const date = document.getElementById("date").value;
 
-    // VALIDATION
-    if(!name||!service||!date){
-      appMsg.textContent="All fields required"; 
-      appMsg.style.color="red"; 
-      return; 
-    }
+    if(!name||!service||!date){ appMsg.textContent="All fields required"; appMsg.style.color="red"; return; }
 
     const apps = getAppointments();
-    if(editIndex !== null){
-      // Update appointment
-      apps[editIndex] = {user:loggedInUser, patientName:name, service, date};
-      editIndex = null;
-      appMsg.textContent="Appointment updated!";
-    } else {
-      // Add new appointment
-      apps.push({user:loggedInUser, patientName:name, service, date});
-      appMsg.textContent="Saved!";
-    }
+    apps.push({user,patientName:name,service,date});
     saveAppointments(apps);
-    appMsg.style.color="green";
+
+    appMsg.textContent="Saved!"; appMsg.style.color="green";
     appointmentForm.reset();
     displayAppointments();
   });
 }
 
-// Display appointments with Edit/Delete buttons
+// Display
 function displayAppointments(){
   if(!appointmentList) return;
   appointmentList.innerHTML="";
-  const myApps = getAppointments().filter(a=>a.user===loggedInUser);
+  const user = getLoggedInUser();
+  const myApps = getAppointments().filter(a=>a.user===user);
 
-  myApps.forEach((a,index)=>{
+  myApps.forEach(app=>{
     const li = document.createElement("li");
     li.innerHTML = `
-      ${a.patientName} | ${a.service} | ${a.date} 
-      <button class="editBtn">Edit</button>
-      <button class="deleteBtn">Delete</button>
+      <span>${app.patientName} | ${app.service} | ${app.date}</span>
+      <div>
+        <button class="editBtn">Edit</button>
+        <button class="deleteBtn">Delete</button>
+      </div>
     `;
-
-    // EDIT BUTTON
-    li.querySelector(".editBtn").addEventListener("click",()=>{
-      document.getElementById("patientName").value = a.patientName;
-      document.getElementById("service").value = a.service;
-      document.getElementById("date").value = a.date;
-      editIndex = getAppointments().findIndex(app => app.user===loggedInUser && app.patientName===a.patientName && app.date===a.date);
-      appMsg.textContent="Editing appointment..."; 
-      appMsg.style.color="orange";
-    });
-
-    // DELETE BUTTON
-    li.querySelector(".deleteBtn").addEventListener("click",()=>{
-      if(confirm("Delete this appointment?")){
-        const apps = getAppointments();
-        const delIndex = apps.findIndex(app => app.user===loggedInUser && app.patientName===a.patientName && app.date===a.date);
-        apps.splice(delIndex,1);
-        saveAppointments(apps);
-        displayAppointments();
-      }
-    });
-
     appointmentList.appendChild(li);
+
+    li.querySelector(".deleteBtn").addEventListener("click", ()=>{
+      const all = getAppointments();
+      all.splice(getAppointmentIndex(app),1);
+      saveAppointments(all);
+      displayAppointments();
+    });
+
+    li.querySelector(".editBtn").addEventListener("click", ()=>{
+      document.getElementById("patientName").value = app.patientName;
+      document.getElementById("service").value = app.service;
+      document.getElementById("date").value = app.date;
+      const all = getAppointments();
+      all.splice(getAppointmentIndex(app),1);
+      saveAppointments(all);
+      displayAppointments();
+    });
   });
 }
 
-// Initial display
-displayAppointments();
+// Auto display dashboard appointments if logged in
+if(document.body.classList.contains("dashboard-page")){
+  displayAppointments();
+}

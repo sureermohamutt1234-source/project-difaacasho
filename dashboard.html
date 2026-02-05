@@ -2,20 +2,19 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Hospital Dashboard</title>
+<title>Dashboard - City Hospital</title>
 <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="dashboard-page">
 
-<header class="header">
-  <h2>Hospital Dashboard</h2>
+<header>
+  <h2>City Hospital Dashboard</h2>
   <button id="logoutBtn">Logout</button>
 </header>
 
 <section class="dashboard">
   <h3 id="welcomeMsg"></h3>
 
-  <!-- Appointment Form -->
   <form id="appointmentForm">
     <h4>Add Appointment</h4>
     <input type="text" id="patientName" placeholder="Patient Name">
@@ -31,7 +30,6 @@
     <p id="appMsg"></p>
   </form>
 
-  <!-- Appointment List -->
   <div class="appointments">
     <h4>My Appointments</h4>
     <ul id="appointmentList"></ul>
