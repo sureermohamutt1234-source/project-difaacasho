@@ -10,38 +10,39 @@ if(contactForm){
     const email = document.getElementById("email").value.trim();
     const message = document.getElementById("message").value.trim();
 
-    // Validate Name -> letters only
-    const namePattern = /^[A-Za-z\s]+$/;
+    // Name validation -> letters only
     if(!name){
       feedback.textContent = "Name is required!";
       feedback.style.color = "red";
       return;
-    } else if(!namePattern.test(name)){
+    }
+    if(/[^A-Za-z\s]/.test(name)){  // If contains non-letters
       feedback.textContent = "Name must contain letters only!";
       feedback.style.color = "red";
       return;
     }
 
-    // Validate Email -> proper format
-    const emailPattern = /^[^ ]+@[^ ]+\.[a-z]{2,3}$/;
+    // Email validation
     if(!email){
       feedback.textContent = "Email is required!";
       feedback.style.color = "red";
       return;
-    } else if(!emailPattern.test(email)){
+    }
+    const emailPattern = /^[^ ]+@[^ ]+\.[a-z]{2,3}$/;
+    if(!emailPattern.test(email)){
       feedback.textContent = "Enter a valid email!";
       feedback.style.color = "red";
       return;
     }
 
-    // Validate Message -> numbers only
-    const messagePattern = /^[0-9]+$/;
+    // Message validation -> letters only
     if(!message){
       feedback.textContent = "Message is required!";
       feedback.style.color = "red";
       return;
-    } else if(!messagePattern.test(message)){
-      feedback.textContent = "Message must contain numbers only!";
+    }
+    if(/[^A-Za-z\s]/.test(message)){
+      feedback.textContent = "Message must contain letters only!";
       feedback.style.color = "red";
       return;
     }
