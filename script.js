@@ -1,39 +1,33 @@
-/* ===== AUTH ===== */
+/* ===== AUTH (Signup/Login) ===== */
+let users = JSON.parse(localStorage.getItem("users")) || [];
+
 const signupForm = document.getElementById("signupForm");
 const loginForm = document.getElementById("loginForm");
 const signupMsg = document.getElementById("signupMsg");
 const loginMsg = document.getElementById("loginMsg");
 
-let users = JSON.parse(localStorage.getItem("users")) || [];
-
-// SIGNUP
 if(signupForm){
   signupForm.addEventListener("submit", e=>{
     e.preventDefault();
     const username = document.getElementById("signupUsername").value.trim();
     const password = document.getElementById("signupPassword").value.trim();
-
     if(!username||!password){ signupMsg.textContent="All fields required!"; signupMsg.style.color="red"; return; }
-    if(password.length<5){ signupMsg.textContent="Password must be at least 5 chars!"; signupMsg.style.color="red"; return; }
+    if(password.length<5){ signupMsg.textContent="Password at least 5 chars!"; signupMsg.style.color="red"; return; }
     if(users.find(u=>u.username===username)){ signupMsg.textContent="Username exists!"; signupMsg.style.color="red"; return; }
-
     users.push({username,password});
     localStorage.setItem("users",JSON.stringify(users));
-    signupMsg.textContent="Signup successful! You can login."; signupMsg.style.color="green";
+    signupMsg.textContent="Signup success! Login now."; signupMsg.style.color="green";
     signupForm.reset();
   });
 }
 
-// LOGIN
 if(loginForm){
   loginForm.addEventListener("submit", e=>{
     e.preventDefault();
     const username = document.getElementById("loginUsername").value.trim();
     const password = document.getElementById("loginPassword").value.trim();
     const user = users.find(u=>u.username===username && u.password===password);
-
-    if(!user){ loginMsg.textContent="Invalid username or password!"; loginMsg.style.color="red"; return; }
-
+    if(!user){ loginMsg.textContent="Invalid username/password!"; loginMsg.style.color="red"; return; }
     localStorage.setItem("loggedInUser",username);
     window.location.href="dashboard.html";
   });
@@ -48,22 +42,20 @@ const appMsg = document.getElementById("appMsg");
 
 function getLoggedInUser(){ return localStorage.getItem("loggedInUser"); }
 
-if(welcomeMsg) welcomeMsg.textContent = "Welcome " + getLoggedInUser();
-
-// Redirect if dashboard accessed without login
 if(document.body.classList.contains("dashboard-page") && !getLoggedInUser()){
   window.location.href="index.html";
 }
 
-// Logout
+if(welcomeMsg) welcomeMsg.textContent = "Welcome " + getLoggedInUser();
+
 if(logoutBtn){
   logoutBtn.addEventListener("click", ()=>{
     localStorage.removeItem("loggedInUser");
-    window.location.href="index.html"; // go to home
+    window.location.href="index.html";
   });
 }
 
-// Appointments CRUD
+/* ===== APPOINTMENTS CRUD ===== */
 function getAppointments(){ return JSON.parse(localStorage.getItem("appointments"))||[]; }
 function saveAppointments(a){ localStorage.setItem("appointments",JSON.stringify(a)); }
 function getAppointmentIndex(app){
@@ -71,7 +63,6 @@ function getAppointmentIndex(app){
   return all.findIndex(a => a.user===app.user && a.patientName===app.patientName && a.service===app.service && a.date===app.date);
 }
 
-// Add
 if(appointmentForm){
   appointmentForm.addEventListener("submit", e=>{
     e.preventDefault();
@@ -86,13 +77,12 @@ if(appointmentForm){
     apps.push({user,patientName:name,service,date});
     saveAppointments(apps);
 
-    appMsg.textContent="Saved!"; appMsg.style.color="green";
+    appMsg.textContent="Appointment saved!"; appMsg.style.color="green";
     appointmentForm.reset();
     displayAppointments();
   });
 }
 
-// Display
 function displayAppointments(){
   if(!appointmentList) return;
   appointmentList.innerHTML="";
@@ -129,7 +119,4 @@ function displayAppointments(){
   });
 }
 
-// Auto display dashboard appointments if logged in
-if(document.body.classList.contains("dashboard-page")){
-  displayAppointments();
-}
+displayAppointments();
