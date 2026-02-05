@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Hospital Dashboard</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="header">
+  <h2>Hospital Dashboard</h2>
+  <button id="logoutBtn">Logout</button>
+</header>
+
+<section class="dashboard">
+  <h3 id="welcomeMsg"></h3>
+
+  <!-- Appointment Form -->
+  <form id="appointmentForm">
+    <h4>Add Appointment</h4>
+    <input type="text" id="patientName" placeholder="Patient Name">
+    <select id="service">
+      <option value="">Select Service</option>
+      <option>Dentistry</option>
+      <option>Cardiology</option>
+      <option>Pediatrics</option>
+      <option>Orthopedics</option>
+    </select>
+    <input type="date" id="date">
+    <button type="submit">Save</button>
+    <p id="appMsg"></p>
+  </form>
+
+  <!-- Appointment List -->
+  <div class="appointments">
+    <h4>My Appointments</h4>
+    <ul id="appointmentList"></ul>
+  </div>
+</section>
+
+<script src="script.js"></script>
+</body>
+</html>
