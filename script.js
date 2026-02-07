@@ -1,4 +1,3 @@
-/* ===== AUTH (Signup/Login) ===== */
 let users = JSON.parse(localStorage.getItem("users")) || [];
 
 const signupForm = document.getElementById("signupForm");
